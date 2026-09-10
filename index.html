@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Consulta de Comodatos</title>
+  
+  <!-- CSS Bootstrap 5 e DataTables -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+  <style>
+    body { background-color: #f8f9fa; }
+    .card { border-radius: 12px; }
+    .table th { background-color: #0d6efd; color: white; white-space: nowrap; }
+    .table td { white-space: nowrap; }
+    #loading { display: flex; align-items: center; justify-content: center; height: 200px; }
+  </style>
+</head>
+<body>
+
+  <div class="container-fluid py-4 px-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h3 class="text-primary m-0">Consulta de Comodatos</h3>
+      <span class="badge bg-secondary" id="total-registros">Carregando dados...</span>
+    </div>
+
+    <div class="card shadow-sm p-3">
+      <!-- Elemento de carregamento -->
+      <div id="loading">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Carregando...</span>
+        </div>
+      </div>
+
+      <!-- Tabela de Dados -->
+      <div class="table-responsive d-none" id="table-container">
+        <table id="tabela-comodatos" class="table table-striped table-hover align-middle style="width:100%">
+          <thead>
+            <tr id="table-header"></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts JS (jQuery, PapaParse, DataTables) -->
+  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+  <script>
+    $(document).ready(function() {
+      // Faz o download e leitura do CSV
+      Papa.parse("Clientes Comodatos.csv", {
+        download: true,
+        header: true,
+        skipEmptyLines: true,
+        encoding: "ISO-8859-1", // Suporte a acentos em arquivos gerados no Excel
+        complete: function(results) {
+          const data = results.data;
+
+          if (!data || data.length === 0) {
+            $('#loading').html('<div class="alert alert-warning">Nenhum dado encontrado no arquivo CSV.</div>');
+            return;
+          }
+
+          // Extrai os nomes das colunas
+          const columns = Object.keys(data[0]);
+          const headerRow = $('#table-header');
+          
+          columns.forEach(col => {
+            headerRow.append(`<th>${col}</th>`);
+          });
+
+          // Preenche o corpo da tabela
+          const tableBody = $('#tabela-comodatos tbody');
+          data.forEach(row => {
+            let tr = '<tr>';
+            columns.forEach(col => {
+              tr += `<td>${row[col] !== undefined ? row[col] : ''}</td>`;
+            });
+            tr += '</tr>';
+            tableBody.append(tr);
+          });
+
+          // Esconde o spinner e exibe a tabela
+          $('#loading').addClass('d-none');
+          $('#table-container').removeClass('d-none');
+          $('#total-registros').text(`${data.length.toLocaleString('pt-BR')} registros`);
+
+          // Inicializa o DataTables com busca global e paginação
+          $('#tabela-comodatos').DataTable({
+            language: {
+              url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json'
+            },
+            pageLength: 20,
+            lengthMenu: [10, 20, 50, 100],
+            responsive: true
+          });
+        },
+        error: function(err) {
+          $('#loading').html('<div class="alert alert-danger">Erro ao carregar o arquivo CSV. Verifique se o nome do arquivo está correto no repositório.</div>');
+        }
+      });
+    });
+  </script>
+</body>
+</html>
