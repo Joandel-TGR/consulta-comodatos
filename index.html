@@ -5,46 +5,108 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Consulta de Comodatos</title>
   
-  <!-- CSS Bootstrap 5 e DataTables -->
+  <!-- Bootstrap 5 CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+  
   <style>
-    body { background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    .card { border-radius: 10px; border: none; }
-    .table th { background-color: #0d6efd; color: white; white-space: nowrap; vertical-align: middle; }
-    .table td { white-space: nowrap; vertical-align: middle; }
-    .filter-box { background-color: #ffffff; border-radius: 10px; padding: 20px; margin-bottom: 20px; }
+    body { background-color: #f4f6f9; font-family: system-ui, -apple-system, sans-serif; }
+    .card-filter { background-color: #ffffff; border-radius: 12px; padding: 16px; margin-bottom: 16px; border: none; }
+    
+    /* Card do Cliente */
+    .client-card {
+      background: #ffffff;
+      border-radius: 10px;
+      border: 1px solid #dee2e6;
+      margin-bottom: 16px;
+      overflow: hidden;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+    }
+    .client-header {
+      background-color: #0d6efd;
+      color: #ffffff;
+      padding: 12px 16px;
+    }
+    .client-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin: 0;
+    }
+    .client-subtitle {
+      font-size: 0.85rem;
+      opacity: 0.9;
+    }
+
+    /* Tabela Interna de Produtos */
+    .table-items {
+      margin-bottom: 0;
+      font-size: 0.875rem;
+    }
+    .table-items th {
+      background-color: #e9ecef;
+      color: #495057;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    /* Ajuste para Celulares */
+    @media (max-width: 767.98px) {
+      .table-items thead { display: none; }
+      .table-items, .table-items tbody, .table-items tr, .table-items td {
+        display: block;
+        width: 100%;
+      }
+      .table-items tr {
+        border-bottom: 1px solid #eee;
+        padding: 8px 12px;
+      }
+      .table-items tr:last-child { border-bottom: none; }
+      .table-items td {
+        padding: 2px 0;
+        border: none;
+        display: flex;
+        justify-content: space-between;
+      }
+      .table-items td::before {
+        content: attr(data-label);
+        font-weight: 700;
+        color: #6c757d;
+        font-size: 0.75rem;
+        margin-right: 8px;
+      }
+    }
   </style>
 </head>
 <body>
 
-  <div class="container-fluid py-4 px-4">
+  <div class="container-fluid py-3 px-3">
+    <!-- Cabeçalho Principal -->
     <div class="d-flex justify-content-between align-items-center mb-3">
-      <h3 class="text-primary fw-bold m-0">Consulta de Comodatos</h3>
-      <span class="badge bg-secondary fs-6" id="total-registros">Base carregando...</span>
+      <h4 class="text-primary fw-bold m-0">Consulta Comodatos</h4>
+      <span class="badge bg-secondary" id="total-registros">Aguardando busca...</span>
     </div>
 
     <!-- PAINEL DE FILTROS -->
-    <div class="filter-box shadow-sm">
+    <div class="card-filter shadow-sm">
       <form id="form-busca" onsubmit="return false;">
-        <div class="row g-3 align-items-end">
+        <div class="row g-2 align-items-end">
           
-          <!-- Filtro Código do Vendedor -->
-          <div class="col-md-4">
-            <label for="filtro-vendedor" class="form-label fw-semibold">Código do Vendedor (Vend)</label>
-            <input type="text" id="filtro-vendedor" class="form-control form-control-lg" placeholder="Ex: 900 (Deixe vazio p/ todos)" autocomplete="off">
+          <!-- Filtro Vendedor -->
+          <div class="col-12 col-md-4">
+            <label for="filtro-vendedor" class="form-label fw-semibold mb-1">Cód. Vendedor</label>
+            <input type="number" id="filtro-vendedor" class="form-control form-control-lg" placeholder="Código do Vendedor (ex: 000)" inputmode="numeric">
           </div>
 
-          <!-- Busca por Código do Cliente -->
-          <div class="col-md-5">
-            <label for="busca-cliente" class="form-label fw-semibold">Código do Cliente (Cód)</label>
-            <input type="text" id="busca-cliente" class="form-control form-control-lg" placeholder="Ex: 0200-0002 (Aperte Enter)" autocomplete="off">
+          <!-- Filtro Cliente -->
+          <div class="col-12 col-md-5">
+            <label for="busca-cliente" class="form-label fw-semibold mb-1">Cód. Cliente</label>
+            <input type="text" id="busca-cliente" class="form-control form-control-lg" placeholder="Código do Cliente (ex: 0000-0000)" autocomplete="off">
           </div>
 
-          <!-- Botões -->
-          <div class="col-md-3 d-flex gap-2">
+          <!-- Botões de Ação -->
+          <div class="col-12 col-md-3 d-flex gap-2 pt-1">
             <button type="button" id="btn-buscar" class="btn btn-primary btn-lg w-100 fw-semibold">
-              <i class="bi bi-search"></i> Buscar
+              BUSCAR
             </button>
             <button type="button" id="btn-limpar" class="btn btn-outline-secondary btn-lg fw-semibold">
               Limpar
@@ -55,140 +117,169 @@
       </form>
     </div>
 
-    <!-- TABELA DE RESULTADOS -->
-    <div class="card shadow-sm p-3">
-      <div id="loading" class="text-center py-5">
-        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
-          <span class="visually-hidden">Carregando dados...</span>
-        </div>
-        <p class="mt-3 text-muted">Carregando base de dados de comodatos...</p>
-      </div>
-
-      <div class="table-responsive d-none" id="table-container">
-        <table id="tabela-comodatos" class="table table-striped table-hover style="width:100%">
-          <thead>
-            <tr id="table-header"></tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
+    <!-- CARREGAMENTO -->
+    <div id="loading" class="text-center py-4 card shadow-sm border-0">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="mt-2 text-muted small mb-0">Carregando base de dados...</p>
     </div>
+
+    <!-- ÁREA DOS RESULTADOS AGRUPADOS -->
+    <div id="resultados-container"></div>
+
   </div>
 
-  <!-- JS (jQuery, PapaParse, DataTables) -->
+  <!-- Scripts JS -->
   <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-  <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 
   <script>
     let baseComodatos = [];
-    let dataTableInstance = null;
-    let colunas = [];
 
     $(document).ready(function() {
-      // Carrega o CSV e trata a codificação
+      // Carrega o CSV
       Papa.parse("Clientes Comodatos.csv", {
         download: true,
         header: true,
         skipEmptyLines: true,
-        encoding: "ISO-8859-1", // Ajustado para não quebrar acentos do Excel (Razão, Cód, Descrição)
+        encoding: "ISO-8859-1",
         complete: function(results) {
           baseComodatos = results.data;
+          $('#loading').addClass('d-none');
 
           if (!baseComodatos || baseComodatos.length === 0) {
-            $('#loading').html('<div class="alert alert-warning">Nenhum registro encontrado no arquivo CSV.</div>');
+            $('#resultados-container').html('<div class="alert alert-warning">Nenhum registro encontrado no CSV.</div>');
             return;
           }
 
-          // Identifica as colunas dinamicamente
-          colunas = Object.keys(baseComodatos[0]);
-          const headerRow = $('#table-header');
-          headerRow.empty();
-          
-          colunas.forEach(col => {
-            headerRow.append(`<th>${col}</th>`);
-          });
-
-          // Esconde loading e exibe a tabela vazia ou pronta
-          $('#loading').addClass('d-none');
-          $('#table-container').removeClass('d-none');
           $('#total-registros').text(`${baseComodatos.length.toLocaleString('pt-BR')} comodatos na base`);
-
-          // Inicializa DataTables zerado
-          inicializarTabela([]);
         },
-        error: function(err) {
-          $('#loading').html('<div class="alert alert-danger">Erro ao carregar o arquivo CSV. Verifique o nome do arquivo no repositório.</div>');
+        error: function() {
+          $('#loading').html('<div class="alert alert-danger m-0">Erro ao carregar o arquivo CSV.</div>');
         }
       });
 
-      // Função para filtrar e atualizar tabela
       function executarBusca() {
         const codVendedor = $('#filtro-vendedor').val().trim().toLowerCase();
         const codCliente = $('#busca-cliente').val().trim().toLowerCase();
 
         if (!codVendedor && !codCliente) {
-          renderizarTabela(baseComodatos);
+          renderizarAgrupado([]);
+          $('#total-registros').text('Informe o Vendedor ou Cliente');
           return;
         }
 
-        const resultados = baseComodatos.filter(item => {
-          // Busca pelas colunas correspondentes (flexível para pequenas variações de nome)
-          const vendVal = (item['Vend'] || item['VENDEDOR'] || item['Vendedor'] || '').toString().trim().toLowerCase();
-          const codVal = (item['Cód'] || item['CODIGO'] || item['Cód.'] || item['Cod'] || '').toString().trim().toLowerCase();
+        const filtrados = baseComodatos.filter(item => {
+          const vendVal = (item['Vend'] || item['VENDEDOR'] || '').toString().trim().toLowerCase();
+          const codVal = (item['Cód'] || item['CODIGO'] || item['Cod'] || '').toString().trim().toLowerCase();
 
-          const atendeVend = !codVendedor || vendVal === codVendedor || vendVal.includes(codVendedor);
-          const atendeCliente = !codCliente || codVal === codCliente || codVal.includes(codCliente);
+          const matchVend = !codVendedor || vendVal === codVendedor;
+          const matchCliente = !codCliente || codVal === codCliente || codVal.includes(codCliente);
 
-          return atendeVend && atendeCliente;
+          return matchVend && matchCliente;
         });
 
-        renderizarTabela(resultados);
+        renderizarAgrupado(filtrados);
       }
 
-      // Renderiza os dados no DataTables
-      function inicializarTabela(dados) {
-        dataTableInstance = $('#tabela-comodatos').DataTable({
-          data: dados,
-          columns: colunas.map(col => ({ data: col, defaultContent: "" })),
-          language: {
-            url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json'
-          },
-          pageLength: 20,
-          destroy: true,
-          responsive: true
-        });
-      }
+      function renderizarAgrupado(dados) {
+        const container = $('#resultados-container');
+        container.empty();
 
-      function renderizarTabela(dados) {
-        if (dataTableInstance) {
-          dataTableInstance.clear();
-          dataTableInstance.rows.add(dados);
-          dataTableInstance.draw();
-        } else {
-          inicializarTabela(dados);
+        if (dados.length === 0) {
+          container.html('<div class="alert alert-info text-center">Nenhum comodato encontrado para os filtros informados.</div>');
+          $('#total-registros').text('0 encontrados');
+          return;
         }
+
+        const clientesMap = {};
+        dados.forEach(item => {
+          const key = (item['Cód'] || item['CODIGO'] || 'SEM CODIGO').trim();
+          if (!clientesMap[key]) {
+            clientesMap[key] = {
+              cod: key,
+              razao: item['Razão'] || item['RAZAO'] || '',
+              fantasia: item['Fantasia'] || item['FANTASIA'] || '',
+              cidade: item['Cidade'] || item['CIDADE'] || '',
+              vendedor: item['Vend'] || item['VENDEDOR'] || '',
+              pasta: item['Pasta'] || '',
+              produtos: []
+            };
+          }
+          clientesMap[key].produtos.push({
+            cev: item['CEV'] || '',
+            codProd: item['Cód Prod'] || item['COD PROD'] || '',
+            descricao: item['Descrição Produto'] || item['DESCRICAO'] || '',
+            dataEmp: item['Data Emp'] || item['DATA EMP'] || '',
+            qtd: item['Qtd'] || item['QTD'] || ''
+          });
+        });
+
+        const totalClientes = Object.keys(clientesMap).length;
+        $('#total-registros').text(`${dados.length} itens em ${totalClientes} cliente(s)`);
+
+        Object.values(clientesMap).forEach(cliente => {
+          let rowsHtml = '';
+          cliente.produtos.forEach(prod => {
+            rowsHtml += `
+              <tr>
+                <td data-label="CEV">${prod.cev}</td>
+                <td data-label="Cód Prod">${prod.codProd}</td>
+                <td data-label="Descrição Produto" class="fw-semibold text-dark">${prod.descricao}</td>
+                <td data-label="Data Emp">${prod.dataEmp}</td>
+                <td data-label="Qtd"><span class="badge bg-primary fs-6">${prod.qtd}</span></td>
+              </tr>
+            `;
+          });
+
+          const cardHtml = `
+            <div class="client-card shadow-sm">
+              <div class="client-header">
+                <div class="client-title">${cliente.cod} - ${cliente.razao}</div>
+                <div class="client-subtitle mt-1">
+                  <strong>Fantasia:</strong> ${cliente.fantasia || 'N/A'} | 
+                  <strong>Cidade:</strong> ${cliente.cidade} | 
+                  <strong>Vend:</strong> ${cliente.vendedor} | 
+                  <strong>Pasta:</strong> ${cliente.pasta}
+                </div>
+              </div>
+              <div class="table-responsive">
+                <table class="table table-hover table-items align-middle">
+                  <thead>
+                    <tr>
+                      <th>CEV</th>
+                      <th>Cód Prod</th>
+                      <th>Descrição Produto</th>
+                      <th>Data Emp</th>
+                      <th>Qtd</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${rowsHtml}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          `;
+          container.append(cardHtml);
+        });
       }
 
-      // Evento ao apertar ENTER no campo de busca ou cliente
+      // Atalho no teclado Enter
       $('#busca-cliente, #filtro-vendedor').on('keypress', function(e) {
-        if (e.which === 13) { // Tecla Enter
+        if (e.which === 13) {
           e.preventDefault();
           executarBusca();
+          $(this).blur();
         }
       });
 
-      // Evento ao clicar no botão Buscar
-      $('#btn-buscar').on('click', function() {
-        executarBusca();
-      });
+      $('#btn-buscar').on('click', executarBusca);
 
-      // Botão Limpar
       $('#btn-limpar').on('click', function() {
         $('#filtro-vendedor').val('');
         $('#busca-cliente').val('');
-        renderizarTabela(baseComodatos);
+        $('#resultados-container').empty();
+        $('#total-registros').text('Aguardando busca...');
       });
     });
   </script>
